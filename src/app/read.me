@@ -1,0 +1,83 @@
+1)Основная разница состоит в том, что BehaviorSubject предоставляет только последнее значение наблюдаемой последовательности для новых наблюдателей, в то время как ReplaySubject предоставляет указанное количество последних значений наблюдаемой последовательности для каждого нового наблюдателя.
+
+
+2)
+import { from } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
+
+const numbers = [1, 2, 4, 4, 13, 13, 13, 4, 4, 3, 2, 5];
+
+from(numbers)
+  .pipe(distinctUntilChanged())
+  .subscribe((value) => {
+    this.log.push(value.toString());
+  });
+
+// Output: 1, 2, 4, 13, 4, 3, 2, 5
+
+2.2 Пример 2: 
+
+import { from } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
+
+const objects = [
+  { a: 1, b: 4 },
+  { a: 3, b: 7 },
+  { a: 34, b: 9 },
+  { a: 34, b: 9 },
+  { a: 56, b: 11 },
+  { b: 11, a: 56 },
+  { a: 1, b: 4 }
+];
+
+from(objects)
+  .pipe(distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)))
+  .subscribe((value) => {
+    this.log.push(JSON.stringify(value));
+  });
+
+// Output:
+// {a: 1, b: 4},
+// {a: 3, b: 7},
+// {a: 34, b: 9},
+// {a: 56, b: 11},
+// {a: 1, b: 4}
+
+
+
+
+
+3)
+import { mergeMap, takeUntil, filter } from 'rxjs/operators';
+
+// ...
+
+this.button1Click$
+  .pipe(
+    mergeMap((value) =>
+      this.button2Click$.pipe(
+        filter((num) => num === 3),
+        takeUntil(this.button1Click$)
+      )
+    )
+  )
+  .subscribe((value) => {
+    this.log.push(value.toString());
+  });
+
+
+4)
+
+import { Subject } from 'rxjs';
+
+export class MessageService {
+  private subject: Subject<string> = new Subject<string>();
+
+  public sendMessage(message: string) {
+    this.subject.next(message);
+  }
+
+  public getMessage(): Observable<string> {
+    return this.subject.asObservable();
+  }
+}
